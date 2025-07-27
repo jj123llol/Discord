@@ -19,9 +19,9 @@ if not os.path.exists("token.txt"):
 with open("token.txt", "r") as f:
     token = f.read()
 
-global prefix, others_allowed, adk, afk_msg, loaded, watching, whitelisted, spam_ping, cmdlists, bot_runner
+global prefix, others_allowed, loaded, watching, whitelisted, spam_ping, cmdlists, bot_runner, afk
 prefix, others_allowed = ".", True
-afk, afk_msg = False, ""
+afk = {}
 loaded, spam_ping = False, False
 watching = []
 whitelisted = []
@@ -54,6 +54,7 @@ async def tick():
     unix = str(unix)
     unix = unix.split(".")[0]
     return int(unix)
+   
 
 class cmdlist:
     async def update(self):
@@ -131,24 +132,26 @@ async def compliment(msg, message, self):
         await message.channel.send(f"<@{mention.id}> " + comps[random.randint(0, len(comps)-1)])
     
         
-@addcmd("afk", 2, "afk (reason)")
-async def afk(msg, message, self):
-    global afk, afk_msg
+@addcmd("afk", 1, "afk (reason)")
+async def afkz(msg, message, self):
+    global afk
+    if message.author.id in afk:
+        await message.reply("no longer afk")
+        del afk[message.author.id]
     unix = str(await tick())
     msg = " ".join(msg)
     msg = msg + f"\nafking since: <t:{unix}:R>"
-    afk, afk_msg = True, msg
-    await message.edit(f"afking for {afk_msg}")
-    time.sleep(2)
-    await message.delete()
+    afk[message.author.id] = msg
+    await message.reply(f"afking for {msg}")
 
-@addcmd("unafk", 2, "unafk")
+@addcmd("unafk", 1, "unafk")
 async def unafk(msg, message, self):
-    global afk, afk_msg
-    afk, afk_msg = False, ""
-    await message.edit("afk off")
-    time.sleep(2)
-    await message.delete()
+    global afk
+    try:
+        del afk[message.author.id]
+        await message.reply("afk off")
+    except:
+        await message.reply("failed")
 
 @addcmd("disclaimer", 1, "disclaimer")        
 async def disclaimer(msg, message, seld):
@@ -498,6 +501,27 @@ async def clone(msg, message, self):
         await message.channel.delete()
     except:
         await message.channel.send("failed")
+        
+        
+        
+@addcmd("spam", 2, "spam (msg)")
+async def spam(msg, message, self):
+    global spam_ping
+    msg = " ".join(msg)
+    spam_ping = True
+    channel = message.channel
+    await message.delete()
+    while spam_ping == True:
+        time.sleep(random.randint(1, 3))
+        await channel.send(msg)
+        
+@addcmd("unspam", 2, "unspam")
+async def unspam(msg, message, self):
+    global spam_ping
+    spam_ping = False
+    await message.edit("turned off!")
+    time.sleep(2)
+    await message.delete()
 
 #######
 class MyClient(discord.Client):
@@ -548,13 +572,12 @@ class MyClient(discord.Client):
         print(f"---[[[[ fully loaded, {bot_runner.display_name}. Made by ant<3 ]]]]---")
 
     async def on_message(self, message):
-        global afk, afk_msg, prefix, loaded, others_allowed, whitelisted
+        global afk, prefix, loaded, others_allowed, whitelisted
         content = message.content
-        if afk == True:
-            if self.user in message.mentions:
-                if message.author != self.user:
-                    await message.reply(f"afk for {afk_msg}")
-                    return ""
+        if len(message.mentions) > 0:
+            for mention in message.mentions:
+                if mention.id in afk and message.author != self.user:
+                   await message.reply(f"<@{mention.id}> is afk for " + afk[mention.id])
         if not content.startswith(prefix):
             return ""
         if self.user != message.author and others_allowed == False:
