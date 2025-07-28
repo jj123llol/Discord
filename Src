@@ -1,14 +1,16 @@
 '''
 
-to get started install discord.py-self
+to get started install discord.py-self, and uwuipy
 
 if you use any code from here, credit me!!
 iused discord.py docs!
 
 '''
 
-
 import discord, os, time, asyncio, random, requests
+from uwuipy import Uwuipy
+
+
 
 print("---[[[[  loading, wait until done. ]]]]---\n\n\n")
 if not os.path.exists("token.txt"):
@@ -586,16 +588,19 @@ async def banners(msg, message, self):
         await message.reply("",files=banners)
     except:
         await message.reply("failed!")
+        
+@addcmd("servericon",1,"servericon") 
+async def servericon(msg, message,self):
+    msg = await message.reply("give us a second!")
+    try:
+        file = await getImg(message.channel.guild.icon)
+    except:
+        await msg.edit("not a guild/no icon!")
+        return ""
+    try:
+        await message.reply("",files=[file])
+    except:
+        await message.reply("failed!")
+    await msg.delete()
 
-#######
-class MyClient(discord.Client):
-    async def on_message_edit(self, before, after):
-        if before.author == self.user:
-            return ""
-        global watching
-        if not before.channel in watching:
-            return ""
-        authorid = before.author.id
-        before_content = before.content
-        after_content = after.content
-        await before.channel.send(f"<@{authorid}> edited a message!\nBefore: {before_content}\nAfter: {after
+@addcmd("uwuify"
