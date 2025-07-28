@@ -102,9 +102,9 @@ def addcmd(name, level, lis):
         return func
     return decorator
     
-async def waitForReaction(emote, target):
+async def waitForReaction(emote, target, msg):
     def check(reaction, user):
-        return user.id == target.id and str(reaction.emoji) == emote
+        return user.id == target.id and str(reaction.emoji) == emote and msg == reaction.message
 
     try:
         reaction, user = await client.wait_for('reaction_add', timeout=30.0, check=check)
@@ -138,6 +138,7 @@ async def afkz(msg, message, self):
     if message.author.id in afk:
         await message.reply("no longer afk")
         del afk[message.author.id]
+        return ""
     unix = str(await tick())
     msg = " ".join(msg)
     msg = msg + f"\nafking since: <t:{unix}:R>"
@@ -181,7 +182,7 @@ async def ghostping(msg, message, self):
 async def sex(msg, message, self):
     for mention in message.mentions:
         new_msg = await message.channel.send(f"<@{mention.id}>, do you wanna have sex with <@{message.author.id}>? react with 👍 if yes. no reaction within 30 seconds means no.")
-        consent = await waitForReaction('👍', mention)
+        consent = await waitForReaction('👍', mention, new_msg)
         if consent == False:
             await message.reply(f'rizz-quirements not met, <@{message.author.id}> has no rizz!:broken_heart:')
             await new_msg.delete()
@@ -189,13 +190,36 @@ async def sex(msg, message, self):
             await message.reply(f' <@{message.author.id}> sucessfully fucked <@{mention.id}>!:tongue:')
             await new_msg.delete()
             
-            
-            
+@addcmd("date", 1, "date @someone")              
+async def date(msg, message, self):
+    for mention in message.mentions:
+        new_msg = await message.channel.send(f"<@{mention.id}>,  <@{message.author.id}> asks you on a date! do you agree? react with 👍 if yes. no reaction within 30 seconds means no.")
+        consent = await waitForReaction('👍', mention, new_msg)
+        if consent == False:
+            await message.reply(f'rizz-quirements not met, <@{message.author.id}> has no rizz!:broken_heart:')
+            await new_msg.delete()
+        else:
+            await message.reply(f' <@{message.author.id}> sucessfully had a date with <@{mention.id}>:rose:!')
+            await new_msg.delete()
+       
+@addcmd("cuddle", 1, "cuddle @someone")              
+async def cuddle(msg, message, self):
+    for mention in message.mentions:
+        new_msg = await message.channel.send(f"<@{mention.id}>,  <@{message.author.id}> asks you to cuddle! do you agree? react with 👍 if yes. no reaction within 30 seconds means no.")
+        consent = await waitForReaction('👍', mention, new_msg)
+        if consent == False:
+            await message.reply(f'rizz-quirements not met, <@{message.author.id}> has no rizz!:broken_heart:')
+            await new_msg.delete()
+        else:
+            await message.reply(f' <@{message.author.id}> and <@{mention.id}> cuddled! :people_hugging::heart:!')
+            await new_msg.delete()         
+                 
+                           
 @addcmd("blow", 1, "blow @someone")              
 async def vloe(msg, message, self):
     for mention in message.mentions:
         new_msg = await message.channel.send(f"<@{mention.id}>, do you wanna be blown by <@{message.author.id}>? react with 👍 if yes. no reaction within 30 seconds means no.")
-        consent = await waitForReaction('👍', mention)
+        consent = await waitForReaction('👍', mention, new_msg)
         if consent == False:
             await message.reply(f'rizz-quirements not met, <@{message.author.id}> has no rizz!:broken_heart:')
             await new_msg.delete()
@@ -240,7 +264,7 @@ async def currentsong(msg, message, self):
     mention = None
     if len(message.mentions) > 0:
         mention = message.mentions[0].id     
-    if mention == None:
+    if mention != None:
         id = mention
     else:
         id = message.author.id
@@ -455,7 +479,7 @@ async def ball(msg, message, self):
 @addcmd("nuke", 2, "nuke")
 async def nuke(msg, message, self):
     await message.edit("woah! this command is dangerous. react :thumbsup: to confirm.")
-    passed = await waitForReaction('👍', bot_runner)
+    passed = await waitForReaction('👍', bot_runner, message)
     if passed == False:
         await message.edit("command aborted")
         time.sleep(2)
@@ -489,7 +513,7 @@ async def dm(msg, message, self):
 @addcmd("clone",2, "clone")
 async def clone(msg, message, self):
     await message.edit("are you sure react :thumbsup: to confirm.?")
-    consent = await waitForReaction('👍', self.user)
+    consent = await waitForReaction('👍', self.user, message)
     if consent == False:
        await message.delete()
        return ""
@@ -572,33 +596,4 @@ class MyClient(discord.Client):
         print(f"---[[[[ fully loaded, {bot_runner.display_name}. Made by ant<3 ]]]]---")
 
     async def on_message(self, message):
-        global afk, prefix, loaded, others_allowed, whitelisted
-        content = message.content
-        if len(message.mentions) > 0:
-            for mention in message.mentions:
-                if mention.id in afk and message.author != self.user:
-                   await message.reply(f"<@{mention.id}> is afk for " + afk[mention.id])
-        if not content.startswith(prefix):
-            return ""
-        if self.user != message.author and others_allowed == False:
-            return ""
-        if others_allowed == True and self.user != message.author and not message.channel in whitelisted:
-            return ""
-        try:
-            msg = content.split()
-            cmd = list(msg[0])
-            msg.pop(0)
-            for i in list(prefix):
-                cmd.pop(0)
-            cmd = "".join(cmd)
-            if cmd in cmds:
-                if cmds[cmd]["level"] == 2 and self.user != message.author:
-                    await message.reply("missing perms")
-                    return ""
-                await cmds[cmd]["func"](msg, message, self)
-        except Exception as e:
-            print(e)
-            
-
-client = MyClient()
-client.run(token)
+        global afk, prefix, loaded, others
