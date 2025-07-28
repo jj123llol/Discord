@@ -314,10 +314,15 @@ async def avatar(msg, message, self):
     avatars = []
     msg = await message.reply("give us a second!")
     for mention in message.mentions:
-        if mention.avatar.url.find(".gif"):
-            avatars.append(await getGif(mention.avatar.url))
+        id = mention.id
+        mention = await self.fetch_user_profile(mention.id)
+        if mention.display_avatar == None:
+            await message.reply(f"<@{id}> has no avatar")
+            continue
+        if mention.display_avatar.url.find(".gif"):
+            avatars.append(await getGif(mention.display_avatar.url))
         else:
-            avatars.append(await getImg(mention.avatar.url))
+            avatars.append(await getImg(mention.display_avatar.url))
     await msg.delete()
     try:
         await message.reply("",files=avatars)
@@ -561,6 +566,27 @@ async def unspam(msg, message, self):
     time.sleep(2)
     await message.delete()
 
+
+@addcmd("banner", 1, "banner @someone")
+async def banners(msg, message, self):
+    banners = []
+    msg = await message.reply("give us a second!")
+    for mention in message.mentions:
+        id = mention.id
+        mention = await self.fetch_user_profile(mention.id)
+        if mention.display_banner == None:
+            await message.reply(f"<@{id}> has no display banner")
+            continue
+        if mention.banner.url.find(".gif"):
+            banners.append(await getGif(mention.display_banner.url))
+        else:
+            bannerds.append(await getImg(mention.display_banner.url))
+    await msg.delete()
+    try:
+        await message.reply("",files=banners)
+    except:
+        await message.reply("failed!")
+
 #######
 class MyClient(discord.Client):
     async def on_message_edit(self, before, after):
@@ -572,31 +598,4 @@ class MyClient(discord.Client):
         authorid = before.author.id
         before_content = before.content
         after_content = after.content
-        await before.channel.send(f"<@{authorid}> edited a message!\nBefore: {before_content}\nAfter: {after_content}")
-        
-    async def on_message_delete(self, message):
-        if message.author == self.user:
-            return ""
-        global watching
-        if not message.channel in watching:
-            return ""
-        author = message.author
-        content = message.content
-        await message.channel.send(f"<@{author.id}> deleted: {content}")
-        
-        
-     
-    async def on_reaction_add(self, reaction, user):
-        global cmdlists
-        if reaction.message in cmdlists:
-            if str(reaction.emoji) == '▶️':
-                await cmdlists[reaction.message].next()
-            elif str(reaction.emoji) == '◀️':
-                await cmdlists[reaction.message].back()
-            elif str(reaction.emoji) == '❌':
-                await cmdlists[reaction.message].delete()
-                
-    async def on_guild_remove(self, guild):
-        print(f"User was kicked from/left guild: {guild.name}")
-        
-    async def o
+        await before.channel.send(f"<@{authorid}> edited a message!\nBefore: {before_content}\nAfter: {after
