@@ -593,14 +593,11 @@ async def banners(msg, message, self):
 async def servericon(msg, message,self):
     msg = await message.reply("give us a second!")
     try:
-        file = await getImg(message.channel.guild.icon)
+        if message.channel.guild.icon.url.find(".gif"):
+            file = await getGif(message.channel.guild.icon.url)
+        else:
+            file = await getImg(message.channel.guild.icon.url)
     except:
         await msg.edit("not a guild/no icon!")
         return ""
-    try:
-        await message.reply("",files=[file])
-    except:
-        await message.reply("failed!")
-    await msg.delete()
-
-@addcmd("uwuify"
+   
