@@ -8,7 +8,7 @@ install python
 pip install discord.py-self or discord.py,
 
 
-pipinstall uwuipy
+pip install uwuipy
 
 
 run sb.py
