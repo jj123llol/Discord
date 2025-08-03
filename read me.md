@@ -10,6 +10,7 @@ pip install discord.py-self or discord.py,
 
 pip install uwuipy
 
+pip install PyNaCl
 
 run sb.py
 
